@@ -62,7 +62,7 @@ namespace NINA.WPF.Base.ViewModel.Equipment.Telescope {
                 this.applicationStatusMediator.StatusUpdate(p);
             });
 
-            InputCoordinatesAltAz = new InputTopocentricCoordinates(Angle.ByDegree(profileService.ActiveProfile.AstrometrySettings.Latitude), Angle.ByDegree(profileService.ActiveProfile.AstrometrySettings.Longitude));
+            InputCoordinatesAltAz = new InputTopocentricCoordinates(Angle.ByDegree(profileService.ActiveProfile.AstrometrySettings.Latitude), Angle.ByDegree(profileService.ActiveProfile.AstrometrySettings.Longitude), profileService.ActiveProfile.AstrometrySettings.Elevation);
 
             ConnectCommand = new AsyncCommand<bool>(() => Task.Run(ChooseTelescope), (object o) => DeviceChooserVM.SelectedDevice != null);
             CancelConnectCommand = new Core.Utility.RelayCommand(CancelChooseTelescope);
@@ -101,7 +101,7 @@ namespace NINA.WPF.Base.ViewModel.Equipment.Telescope {
         }
 
         private void ProfileService_LocationChanged(object sender, EventArgs e) {
-            InputCoordinatesAltAz?.SetPosition(Angle.ByDegree(profileService.ActiveProfile.AstrometrySettings.Latitude), Angle.ByDegree(profileService.ActiveProfile.AstrometrySettings.Longitude));
+            InputCoordinatesAltAz?.SetPosition(Angle.ByDegree(profileService.ActiveProfile.AstrometrySettings.Latitude), Angle.ByDegree(profileService.ActiveProfile.AstrometrySettings.Longitude), profileService.ActiveProfile.AstrometrySettings.Elevation);
         }
 
         public async Task<IList<string>> Rescan() {
@@ -527,6 +527,12 @@ namespace NINA.WPF.Base.ViewModel.Equipment.Telescope {
                             await Disconnect(); 
                         }
                         Notification.ShowError(ex.Message);
+                        return false;
+                    } catch (Exception ex) {
+                        Notification.ShowError(ex.Message);
+                        Logger.Error(ex);
+                        if (TelescopeInfo.Connected) { await Disconnect(); }
+                        TelescopeInfo.Connected = false;
                         return false;
                     }
                 } else {
@@ -981,8 +987,8 @@ namespace NINA.WPF.Base.ViewModel.Equipment.Telescope {
             var coords = targetCoordinates.Transform(TelescopeInfo.EquatorialSystem);
             if (TelescopeInfo.Connected) {
                 var flipResult = await Telescope.MeridianFlip(coords, token);
-                await this.domeMediator.WaitForDomeSynchronization(CancellationToken.None);
-                await updateTimer.WaitForNextUpdate(default);
+                await this.domeMediator.WaitForDomeSynchronization(token);
+                await updateTimer.WaitForNextUpdate(token);
                 return flipResult;
             } else {
                 return false;

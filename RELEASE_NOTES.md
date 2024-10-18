@@ -3,6 +3,30 @@
 If N.I.N.A. helps you in your journey for amazing deep sky images, please consider a donation. Each backer will help keeping the project alive and active.  
 More details at <a href="https://nighttime-imaging.eu/donate/" target="_blank">nighttime-imaging.eu/donate/</a>
 
+# Version 3.2
+
+## Bugfixes
+- Sky Atlas constellation filter is no longer failing to find some of the objects that are part of the selected constellation
+
+## Improvements
+- The device chooser will now show a stored device id that is currently not available as an "Offline device" instead of showing "No Device" to differentiate having no device selected versus a saved device that is currently unavailable
+- ZWO EAF is now available as a native driver
+- Framing assistant sky annotation options are now saved to the active profile
+- Looping mode is no longer started when NINA connects to PHD2.
+
+## Commandline Options
+The following command line options have been added
+```
+-g, --disable-hardware-acceleration        Disables UI hardware acceleration
+```
+
+## Plugin Development
+
+### AssemblyLoadContext
+- Plugins are now loaded within separate [AssemblyLoadContexts](https://learn.microsoft.com/en-us/dotnet/core/dependency-loading/understanding-assemblyloadcontext)
+    - This change will isolate third party plugin dependencies so that one plugin having a different version of the same third party library will no longer cause issues
+    - No changes to existing plugins are required
+
 # Version 3.1 Hotfix 2
 
 ## Improvements
@@ -11,6 +35,10 @@ More details at <a href="https://nighttime-imaging.eu/donate/" target="_blank">n
 - Improved accuracy of estimated time display for Wait If Sun/Moon altitude instructions as well as Loop while Sun/Moon altitude conditions
 - Improved the dock panel layout for flat panels inside the imaging tab when smaller sized
 - Added a new instruction `Save Sequence` to be able to automatically save the sequence during runtime inside the advanced sequencer
+- In Framing Assistant the "Annotate DSO" and "Annotate Grid" buttons will keep their state when resizing or reloading the framing image
+- SITELEV keyword is now populated from Options > Astrometry instead of the mount
+- Legacy sequencer now also shows validation issues for target startup actions like slew, center & rotate
+- Weather Underground client now knows about wind gust and rain rate, and has increased decimal precision for all supported weather statistics
 
 ## Bug Fixes
 - When using CFitsio to save files, if the file name contains a parenthesis, it will no longer fail to save. parenthesis are special characters for CFitsio and will thus replaced with an underscore.
@@ -21,9 +49,12 @@ More details at <a href="https://nighttime-imaging.eu/donate/" target="_blank">n
 - When using the `Cool Camera` instruction, the camera's failure to reach the target setpoint now results in a sequence error event. An example cause would be the camera's cooling progress stalling (moving < 0.5°C over 2 minutes) while the cooler is at 100% power due the ambient temperature being too hot to reach the desired setpoint.
 - Fixed a display issue in the mini sequencer where the sequence container header was indented too much.
 - Messagebox instruction now automatically closes when a loop will interrupt the instruction set where the message box is placed inside
+- Improved input behavior for topocentric coordinates where sometimes a small rounding issue lead to incorrect display when cloning instructions
+- When using a dome with the dome follower, a timeout during dome synchronization will no longer cancel the remaining steps after a meridian flip
 - QHY Cameras:
   - The TEC setpoint and state is now preserved when switching between single-exposure and stream mode.
   - The list of available cameras will now properly update when one camera is replaced by a different one.
+- When dome option to "close on unsafe conditions" was selected it is no longer commanding the closure multiple times when switching to unsafe and instead properly waits for the first call to finish
 
 # Version 3.1 Hotfix 1
 
